@@ -1,0 +1,121 @@
+<script setup lang="ts">
+// Types
+import type { IFile } from '~/components/FileInput/types/file.type'
+
+// Constants
+import { ICON_BY_FILE_TYPE } from '~/components/FileInput/constants/iconByFileType'
+
+type IProps = {
+  downloadUrl?: string
+  editable?: boolean
+  file: File | IFile
+  noDownloadButton?: boolean
+}
+
+const props = defineProps<IProps>()
+defineEmits<{
+  (e: 'remove'): void
+}>()
+// Utils
+const { getLocalImageUrl } = useImages()
+
+const icon = computed(() => {
+  const icon =
+    ICON_BY_FILE_TYPE[props.file.type as keyof typeof ICON_BY_FILE_TYPE] ||
+    'bi:file-image'
+
+  return icon
+})
+
+const imageUrl = computed(() => {
+  if ('path' in props.file && props.file.type?.startsWith('image/')) {
+    return getLocalImageUrl(props.file.path)
+  } else if (!('path' in props.file) && props.file.type?.startsWith('image/')) {
+    return URL.createObjectURL(props.file)
+  }
+
+  return null
+})
+</script>
+
+<template>
+  <div class="file-preview">
+    <div class="file-preview--header">
+      <span
+        self-center
+        text="caption"
+        line-clamp="2"
+      >
+        {{ file?.name }}
+      </span>
+
+      <Btn
+        v-if="editable"
+        size="xs"
+        preset="CLOSE"
+        self-start
+        @click.stop.prevent="$emit('remove')"
+      />
+    </div>
+
+    <div class="file-preview--image">
+      <img
+        v-if="imageUrl"
+        :src="imageUrl"
+        :alt="file.name"
+        height="100"
+      />
+
+      <div
+        v-else
+        :class="icon"
+        h="10"
+        w="10"
+      />
+    </div>
+
+    <div
+      v-if="!noDownloadButton"
+      class="file-preview--download"
+    >
+      <Btn
+        v-if="'path' in file"
+        w-full
+        size="sm"
+        :label="$t('file.download')"
+        @click.stop.prevent="handleDownloadFile(file, downloadUrl)"
+      />
+      <Btn
+        v-else
+        :label="$t('file.added')"
+        size="sm"
+        w-full
+      />
+    </div>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.file-preview {
+  --apply: grid gap-4 fit items-center border-1 border-dotted rounded-3
+    border-ca color-ca;
+
+  grid-template-rows: auto 1fr auto;
+
+  &--header {
+    --apply: flex flex-row gap-x-2 p-x-2 w-full justify-between p-t-1 p-b-2;
+  }
+
+  &--image {
+    --apply: flex flex-center p-b-4 p-x-3;
+
+    img {
+      --apply: rounded-3 object-cover object-center h-20;
+    }
+  }
+
+  &:hover {
+    --apply: shadow-consistent-xs shadow-ca color-dark dark:color-light;
+  }
+}
+</style>

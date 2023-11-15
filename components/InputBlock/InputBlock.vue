@@ -1,0 +1,68 @@
+<script setup lang="ts">
+// Types
+import { type IMiniCardProps } from '~/components/Card/types/mini-card-props.type'
+
+// Functions
+import { useMiniCardUtils } from '~/components/Card/functions/useMiniCardUtils'
+
+defineOptions({
+  inheritAttrs: false,
+})
+
+const props = withDefaults(
+  defineProps<IMiniCardProps & { editable?: boolean }>(),
+  {
+    emptyValueString: '-',
+  }
+)
+
+// UTILS
+const { getMiniCardProps } = useMiniCardUtils()
+
+const miniCardProps = getMiniCardProps(props)
+</script>
+
+<template>
+  <MiniCard
+    v-if="!editable"
+    v-bind="{
+      ...miniCardProps,
+      ...$attrs,
+    }"
+    bg="white dark:darker"
+    :original-value="originalValue"
+    :to-original-value="toOriginalValue"
+  >
+    <template #default="{ val }">
+      <slot
+        name="readonly"
+        :val="val"
+      />
+    </template>
+  </MiniCard>
+
+  <div
+    v-else
+    flex
+    items-center
+    v-bind="{
+      ...$attrs,
+    }"
+  >
+    <div
+      v-if="miniCardProps.icon"
+      class="icon"
+      :class="miniCardProps.icon"
+    />
+    <div flex-grow-1>
+      <slot />
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.icon {
+  --apply: h-6 w-6 translate-y-2 m-r-3;
+  --apply: color-$Collapse-dropdown-icon-color;
+}
+</style>
